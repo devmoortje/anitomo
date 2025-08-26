@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Register · YourApp{% endblock %}
+{% block content %}
+<h1 class="m-0">Create your account</h1>
+<p class="sub mt-1">Join the community in under a minute.</p>
+
+<section class="card mt-3">
+  <form method="post" action="{{ url_for('auth.register') }}" novalidate>
+    <div class="row">
+      <div class="col-6 input">
+        <label for="username">Username</label>
+        <input id="username" name="username" required placeholder="e.g. shinji88" value="{{ request.form.get('username', '') }}"/>
+      </div>
+      <div class="col-6 input">
+        <label for="email">Email</label>
+        <input id="email" name="email" type="email" required placeholder="you@example.com" value="{{ request.form.get('email', '') }}"/>
+      </div>
+      <div class="col-6 input">
+        <label for="password">Password</label>
+        <input id="password" name="password" type="password" minlength="8" required placeholder="At least 8 characters" />
+      </div>
+      <div class="col-6 input">
+        <label for="confirm">Confirm password</label>
+        <input id="confirm" name="confirm" type="password" minlength="8" required placeholder="Repeat your password" />
+      </div>
+      <div class="col-12 input">
+        <label for="genres">Favorite genres (comma separated)</label>
+        <input id="genres" name="genres" placeholder="mecha, slice of life, shounen" value="{{ request.form.get('genres', '') }}"/>
+      </div>
+    </div>
+
+    <div class="flex mt-2">
+      <button class="btn primary" type="submit">Sign up</button>
+      <a class="btn ghost" href="{{ url_for('pages.index') }}">Cancel</a>
+    </div>
+    {% if error %}<p class="mt-2" style="color:#fca5a5">{{ error }}</p>{% endif %}
+  </form>
+</section>
+<p class="sub mt-2">Already have an account? <a href="{{ url_for('auth.login') }}">Sign in</a>.</p>
+{% endblock %}

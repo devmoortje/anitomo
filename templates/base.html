@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{% block title %}YourApp{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+  </head>
+  <body>
+    <header class="nav">
+      <div class="container inner">
+        <a class="brand" href="{{ url_for('pages.index') }}" aria-label="Home">
+          <span class="logo">YA</span>
+          <span>YourApp</span>
+        </a>
+        <nav class="links">
+          <a href="{{ url_for('pages.index') }}">Home</a>
+          <a href="{{ url_for('auth.register') }}">Register</a>
+          {% if session.get('user') %}
+            <a href="{{ url_for('pages.main') }}">Main</a>
+            <a href="{{ url_for('account.me') }}">My Info</a>
+            <a class="btn ghost" href="{{ url_for('auth.logout') }}">Sign out</a>
+          {% else %}
+            <a class="btn ghost" href="{{ url_for('auth.login') }}">Sign in</a>
+            <a class="btn primary" href="{{ url_for('auth.register') }}">Get Started</a>
+          {% endif %}
+        </nav>
+      </div>
+    </header>
+
+    <main class="container">
+      {% block content %}{% endblock %}
+    </main>
+
+    <footer>
+      <div class="container">
+        <div class="flex">
+          <span class="badge">Starter</span>
+          <span>© <span id="year"></span> YourApp. Build something people love.</span>
+        </div>
+      </div>
+      <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    </footer>
+  </body>
+</html>
