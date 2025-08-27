@@ -1,0 +1,5 @@
+# Python / macOS basics
+.venv/
+__pycache__/
+*.pyc
+.DS_Store
