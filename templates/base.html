@@ -3,15 +3,15 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{% block title %}YourApp{% endblock %}</title>
+    <title>{% block title %}Anitomo{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
   </head>
   <body>
     <header class="nav">
       <div class="container inner">
         <a class="brand" href="{{ url_for('pages.index') }}" aria-label="Home">
-          <span class="logo">YA</span>
-          <span>YourApp</span>
+          <span class="logo">ANI</span>
+          <span>Anitomo</span>
         </a>
         <nav class="links">
           <a href="{{ url_for('pages.index') }}">Home</a>
@@ -36,7 +36,7 @@
       <div class="container">
         <div class="flex">
           <span class="badge">Starter</span>
-          <span>© <span id="year"></span> YourApp. Build something people love.</span>
+          <span>© <span id="year"></span> Anitomo. Build something people love.</span>
         </div>
       </div>
       <script src="{{ url_for('static', filename='js/script.js') }}"></script>
