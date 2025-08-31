@@ -2,13 +2,12 @@
 {% block title %}Sign in · YourApp{% endblock %}
 {% block content %}
 <h1 class="m-0">Sign in</h1>
-<p class="sub mt-1">Welcome back.</p>
 <section class="card mt-3">
   <form method="post" action="{{ url_for('auth.login') }}">
     <div class="row">
       <div class="col-6 input">
-        <label for="username">Username</label>
-        <input id="username" name="username" required />
+        <label for="username">Email</label>
+        <input id="username" name="email" required />
       </div>
       <div class="col-6 input">
         <label for="password">Password</label>
