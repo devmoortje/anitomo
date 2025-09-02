@@ -77,28 +77,19 @@ def create_app():
     def auth_login():
         error = None
         if request.method == "POST":
-            email = request.form.get("email","").strip()
+            email = request.form.get("email","").strip().lower()
             password = request.form.get("password","")
             print("------------BEFORE RES-----------")
+            
+            # If email does not exist, let the user know
+            user_exists = supabase.table("profiles").select("id").eq("email", email).execute()
+            if not user_exists.data:
+                return render_template("login.html", error="No account with that email."), 400
+
             try:
                 res = supabase.auth.sign_in_with_password({"email": email, "password": password})
-            except AuthApiError as e:
-        # Typical message: "Invalid login credentials"
-        # str(e) is safe and human-readable; status code if you need it:
-                status = getattr(e, "status_code", 400)
-                return render_template("login.html", error=str(e)), status
-
-            
-            
-            # res = supabase.auth.sign_in_with_password({"email": email, "password": password})
-            print("------------AFTER RES-----------")
-            if res.user is None:  
-            # Login failed
-                if res.error:
-                    error_message = res.error.message   # e.g. "Invalid login credentials"
-                else:
-                    error_message = "Login failed for unknown reason."
-                return render_template("login.html", error=error_message)
+            except AuthApiError:
+                return render_template("login.html", error="Incorrect password."), 400
 
             session["access_token"] = res.session.access_token
             session["user_id"] = res.user.id
