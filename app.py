@@ -1,8 +1,10 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, session
+from helper import get_user_client
 from supabase import create_client, Client
 from supabase_auth.errors import AuthApiError
+from werkzeug.exceptions import BadRequestKeyError
 
 
 def create_app():
@@ -26,14 +28,9 @@ def create_app():
     SUPABASE_SERVICE_ROLE_KEY = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 
     # Create Client objects supabase and admin
-    # supabase can do CRUD
-    #  while admin has full access to 
     supabase: Client = create_client(SUPABASE_URL, SUPABASE_ANON_KEY)
     admin: Client = create_client(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY) if SUPABASE_SERVICE_ROLE_KEY else None
 
-
-    # Fake in-memory "users"
-    USERS = {}
 
     @app.route("/")
     def root():
@@ -57,7 +54,13 @@ def create_app():
     def pages_main():
         if not session.get("user_id"):
             return redirect(url_for("auth.login"))
-        return render_template("main.html", flash_msg=request.args.get("m"))
+
+        res = supabase.table("profiles").select("display_name") \
+                .eq("id", session["user_id"]).single().execute()
+        
+        display_name = res.data["display_name"]
+
+        return render_template("main.html", flash_msg=request.args.get("m"), display_name=display_name)
 
     @app.route("/pages/create-room", methods=["POST"])
     def pages_create_room():
@@ -72,29 +75,29 @@ def create_app():
             return redirect(url_for("auth.login"))
         return redirect(url_for("pages_main", m="🎯 We'd match you with 3 people (demo)."))
 
-    # ----- Auth
+    # ----- Log in
     @app.route("/auth/login", methods=["GET", "POST"])
     def auth_login():
         error = None
         if request.method == "POST":
             email = request.form.get("email","").strip().lower()
             password = request.form.get("password","")
-            print("------------BEFORE RES-----------")
             
-            # If email does not exist, let the user know
+            # Fetch email. If not exist, let the user know
             user_exists = supabase.table("profiles").select("id").eq("email", email).execute()
             if not user_exists.data:
-                return render_template("login.html", error="No account with that email."), 400
+                return render_template("login.html", error="Invalid email"), 400
 
+            # Log in with supabase
             try:
                 res = supabase.auth.sign_in_with_password({"email": email, "password": password})
             except AuthApiError:
-                return render_template("login.html", error="Incorrect password."), 400
-
+                return render_template("login.html", error="Invalid password"), 400
             session["access_token"] = res.session.access_token
             session["user_id"] = res.user.id
-            print(f"session user id is: {session.get('user_id')}")
 
+        
+        
             return redirect(url_for("pages_main"))
         return render_template("login.html", error=error)
 
@@ -107,11 +110,12 @@ def create_app():
     def auth_register():
         error = None
         if request.method == "POST":
-            username = request.form.get("username","").strip()
+            display_name = request.form.get("display_name","").strip()
             email = request.form.get("email","").strip()
             password = request.form.get("password","")
             confirm = request.form.get("confirm","")
-            if not username or not email or not password:
+            top5 = request.form.get("top5", "")
+            if not display_name or not email or not password:
                 error = "Please fill in all required fields."
             elif password != confirm:
                 error = "Passwords do not match."
@@ -120,28 +124,81 @@ def create_app():
                 user = res.user
                 # if admin and user, insert a new user
                 if admin and user:
-                    admin.table("profiles").insert({"id": user.id, "display_name": "", "email": user.email, "handle": f"user_{user.id[:8]}"}).execute()
+                    admin.table("profiles").insert({"id": user.id, "display_name": display_name, "email": user.email, "handle": f"user_{user.id[:8]}", "top5": top5}).execute()
                 return redirect(url_for("pages_main"))
         return render_template("register.html", error=error)
 
     # ----- Account
     @app.route("/account/me", methods=["GET", "POST"])
     def account_me():
-        if not session.get("user"):
+    # 1) Require login and get a user-scoped client (RLS-aware)
+        user_client = get_user_client()
+        if not user_client:
             return redirect(url_for("auth.login"))
-        username = session["user"]["username"]
-        user = USERS.get(username, {})
+
+        user_id = session.get("user_id")
+        if not user_id:
+            return redirect(url_for("auth.login"))
+
+        # 2) Fetch current profile (if any)
+        prof_res = user_client.table("profiles") \
+            .select("id, handle, display_name, email, bio, top5, avatar_url") \
+            .eq("id", user_id) \
+            .execute()
+
+        profile = (prof_res.data[0] if prof_res.data else {
+            "id": user_id,
+            "handle": None,
+            "display_name": "",
+            "email": "",
+            "bio": "",
+            "top5": "",
+            "avatar_url": None,
+        })
+
         saved = False
+
         if request.method == "POST":
-            user["display"] = request.form.get("displayName", user.get("display"))
-            user["email"] = request.form.get("email", user.get("email"))
-            user["bio"] = request.form.get("bio", user.get("bio",""))
-            user["top5"] = request.form.get("top5", user.get("top5",""))
-            user["tags"] = request.form.get("tags", user.get("tags",""))
-            USERS[username] = user
-            session["user"]["display"] = user.get("display", username)
+            # 3) Collect fields from form (use existing values as defaults)
+            #    Guard against missing keys so a partial form doesn't nuke fields.
+            def _get(name, default):
+                try:
+                    v = request.form.get(name, default)
+                except BadRequestKeyError:
+                    v = default
+                return v
+
+            update_payload = {
+                "display_name": _get("displayName", profile.get("display_name")),
+                "email":       _get("email",       profile.get("email")),
+                "bio":         _get("bio",         profile.get("bio")),
+                "top5":        _get("top5",        profile.get("top5"))
+            }
+
+            # Remove keys that are still None (helps if columns don’t exist yet)
+            update_payload = {k: v for k, v in update_payload.items() if v is not None}
+
+            if prof_res.data:
+                # 4a) Update existing row
+                user_client.table("profiles") \
+                    .update(update_payload) \
+                    .eq("id", user_id) \
+                    .execute()
+            else:
+                # 4b) Insert new row (ensure id is present)
+                update_payload["id"] = user_id
+                user_client.table("profiles").insert(update_payload).execute()
+
+            # Re-fetch to render fresh values
+            prof_res = user_client.table("profiles") \
+                .select("id, handle, display_name, email, bio, top5, avatar_url") \
+                .eq("id", user_id) \
+                .execute()
+            profile = prof_res.data[0] if prof_res.data else profile
             saved = True
-        return render_template("account.html", user=user, saved=saved)
+
+        # 5) Render
+        return render_template("account.html", user=profile, saved=saved)
 
     # Jinja-friendly endpoint names
     app.add_url_rule("/pages/index", endpoint="pages.index", view_func=pages_index)

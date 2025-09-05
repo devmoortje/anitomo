@@ -8,8 +8,8 @@
   <form method="post" action="{{ url_for('auth.register') }}" novalidate>
     <div class="row">
       <div class="col-6 input">
-        <label for="username">Username</label>
-        <input id="username" name="username" required placeholder="e.g. shinji88" value="{{ request.form.get('username', '') }}"/>
+        <label for="username">Display name</label>
+        <input id="username" name="display_name" required placeholder="e.g. shinji88" value="{{ request.form.get('display_name', '') }}"/>
       </div>
       <div class="col-6 input">
         <label for="email">Email</label>
@@ -24,8 +24,8 @@
         <input id="confirm" name="confirm" type="password" minlength="8" required placeholder="Repeat your password" />
       </div>
       <div class="col-12 input">
-        <label for="genres">Favorite genres (comma separated)</label>
-        <input id="genres" name="genres" placeholder="mecha, slice of life, shounen" value="{{ request.form.get('genres', '') }}"/>
+        <label for="genres">Top 5 favorite anime (comma separated)</label>
+        <input id="genres" name="top5" placeholder="mecha, slice of life, shounen" value="{{ request.form.get('top5', '') }}"/>
       </div>
     </div>
 

@@ -15,14 +15,12 @@
         </a>
         <nav class="links">
           <a href="{{ url_for('pages.index') }}">Home</a>
-          <a href="{{ url_for('auth.register') }}">Register</a>
-          {% if session.get('user') %}
-            <a href="{{ url_for('pages.main') }}">Main</a>
-            <a href="{{ url_for('account.me') }}">My Info</a>
-            <a class="btn ghost" href="{{ url_for('auth.logout') }}">Sign out</a>
-          {% else %}
+          {% if not session.get('user_id') %}
             <a class="btn ghost" href="{{ url_for('auth.login') }}">Sign in</a>
-            <a class="btn primary" href="{{ url_for('auth.register') }}">Get Started</a>
+            <a href="{{ url_for('auth.register') }}">Register</a>
+          {% else %}
+            <a href="{{ url_for('account.me') }}">{{ display_name }}</a>
+            <a class="btn ghost" href="{{ url_for('auth.logout') }}">Sign out</a>
           {% endif %}
         </nav>
       </div>
