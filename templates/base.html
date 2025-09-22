@@ -9,12 +9,12 @@
   <body>
     <header class="nav">
       <div class="container inner">
-        <a class="brand" href="{{ url_for('pages.index') }}" aria-label="Home">
+        <a class="brand" href="{{ url_for('pages.main') }}" aria-label="Home">
           <span class="logo">ANI</span>
           <span>Anitomo</span>
         </a>
         <nav class="links">
-          <a href="{{ url_for('pages.index') }}">Home</a>
+          <a href="{{ url_for('pages.main') }}">Home</a>
           {% if not session.get('user_id') %}
             <a class="btn ghost" href="{{ url_for('auth.login') }}">Sign in</a>
             <a href="{{ url_for('auth.register') }}">Register</a>
@@ -33,8 +33,7 @@
     <footer>
       <div class="container">
         <div class="flex">
-          <span class="badge">Starter</span>
-          <span>© <span id="year"></span> Anitomo. Build something people love.</span>
+          <span>Anitomo © <span id="year"></span> Build something people love.</span>
         </div>
       </div>
       <script src="{{ url_for('static', filename='js/script.js') }}"></script>

@@ -3,50 +3,9 @@
 {% block content %}
 <section class="flex" style="justify-content:space-between;">
   <div>
-    <h1 class="m-0">Welcome back, {{ session.get('user', {}).get('display', 'Friend') }} 👋</h1>
-    <p class="sub mt-1">Here's what's new today.</p>
-  </div>
-  <div class="flex">
-    <a class="btn" href="{{ url_for('account.me') }}">My Info</a>
-    <form method="post" action="{{ url_for('pages.create_room') }}">
-      <button class="btn" type="submit">Create Room</button>
-    </form>
+    <h1 class="m-0">Welcome back, {{ display_name }} 👋</h1>
   </div>
 </section>
 
-<section class="grid mt-3">
-  <article class="card col-8">
-    <h3>Feed</h3>
-    <ul style="margin:0; padding-left:1rem;">
-      <li>🎬 New watch-along starting in 10 minutes: <strong>Episode 1 Night</strong></li>
-      <li>⭐ <strong>@saitama</strong> reviewed <em>One Punch Man</em>: "Peak comedy and fights."</li>
-      <li>🧭 Looking for a buddy to watch <em>Mushishi</em> slowly over the week.</li>
-    </ul>
-  </article>
-  <aside class="card col-4">
-    <h3>Quick Match</h3>
-    <form method="post" action="{{ url_for('pages.quick_match') }}">
-      <div class="input">
-        <label for="genre">Genre</label>
-        <select id="genre" name="genre">
-          <option>Any</option>
-          <option>Shounen</option>
-          <option>Slice of Life</option>
-          <option>Romance</option>
-          <option>Mecha</option>
-        </select>
-      </div>
-      <div class="input">
-        <label for="time">Time</label>
-        <select id="time" name="time">
-          <option>Tonight</option>
-          <option>Weekend</option>
-          <option>Weekday evenings</option>
-        </select>
-      </div>
-      <button class="btn success mt-2" type="submit">Find match</button>
-      {% if flash_msg %}<p class="mt-1">{{ flash_msg }}</p>{% endif %}
-    </form>
-  </aside>
-</section>
+
 {% endblock %}

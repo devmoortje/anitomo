@@ -2,26 +2,25 @@
 {% block title %}My Info · YourApp{% endblock %}
 {% block content %}
 <h1 class="m-0">My Info</h1>
-<p class="sub mt-1">Update your profile and preferences.</p>
 
 <section class="card mt-3">
   <form method="post" action="{{ url_for('account.me') }}">
     <div class="row">
       <div class="col-6 input">
         <label for="displayName">Display name</label>
-        <input id="displayName" name="displayName" value="{{ user.display if user else '' }}" />
+        <input id="displayName" name="displayName" value="{{ user.display_name}}" />
       </div>
       <div class="col-6 input">
         <label for="email">Email</label>
-        <input id="email" name="email" type="email" value="{{ user.email if user else '' }}" />
+        <input id="email" name="email" type="email" value="{{ user.email}}" />
       </div>
       <div class="col-12 input">
         <label for="bio">Bio</label>
-        <textarea id="bio" name="bio" rows="4">{{ user.bio if user else '' }}</textarea>
+        <textarea id="bio" name="bio" rows="4">{{ user.bio}}</textarea>
       </div>
       <div class="col-6 input">
         <label for="top5">Top 5 anime (comma separated)</label>
-        <input id="top5" name="top5" value="{{ user.top5 if user else '' }}"/>
+        <input id="top5" name="top5" value="{{ user.top5}}"/>
       </div>
     </div>
 

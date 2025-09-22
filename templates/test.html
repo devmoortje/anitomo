@@ -1,0 +1,57 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Card</title>
+    <style>
+      :root { --bg: #f7f7f8; --ink: #111; --muted: #666; --radius: 16px }
+      * { box-sizing: border-box }
+      body { margin: 0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; background: var(--bg); color: var(--ink); display: grid; place-items: center; min-height: 100vh }
+      .card { width: 360px; background: #fff; border-radius: var(--radius); box-shadow: 0 8px 24px rgba(0,0,0,.08) }
+      .media { display: block; width: 100%; height: 200px; object-fit: cover; border-top-left-radius: var(--radius); border-top-right-radius: var(--radius) }
+      .pad { padding: 16px 18px 18px }
+      .title { font-size: 20px; line-height: 1.25; margin: 0 0 6px }
+      .sub { font-size: 14px; color: var(--muted); margin: 0 0 12px }
+      .row { display: flex; gap: 8px; align-items: center; justify-content: space-between }
+      .btn { appearance: none; border: 0; background: #111; color: #fff; padding: 10px 14px; border-radius: 12px; cursor: pointer }
+    </style>
+  </head>
+  <body>
+    <article class="card">
+      <img src="https://ovfkiuyhmzyhygkxkbll.supabase.co/storage/v1/object/public/avatars/11080640-6e71-4cda-bb52-f612af4b4096/pic.jpg" alt="">
+      <!-- <img src="{{ 'https://ovfkiuyhmzyhygkxkbll.supabase.co/storage/v1/object/public/avatars/' ~ user_id ~ '/pic.jpg' }}" alt=""> -->
+
+      <div class="pad">
+        <h2 class="title">Card title</h2>
+        <p class="sub">Short subtitle goes here</p>
+        <div class="row">
+          <span>Detail</span>
+          <button class="btn">Action</button>
+        </div>
+      </div>
+    </article>
+
+      <!-- <script type="module">
+        import { createClient } from "https://esm.sh/@supabase/supabase-js";
+
+        const SUPABASE_URL=SUPABASE_URL;
+        const SUPABASE_ANON_KEY=SUPABASE_ANON_KEY;
+        const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        const { data: { user } } = await supabase.auth.getUser();
+        const file = document.querySelector("#file").files[0];
+        const ext = file.name.split(".").pop();
+        const path = `${user.id}/avatar.${ext}`;
+
+        const { data, error } = await supabase.storage
+          .from("avatars")
+          .upload(path, file, { cacheControl: "3600", upsert: true, contentType: file.type });
+
+        if (error) console.error(error);
+        const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(path);
+        const publicUrl = urlData.publicUrl;
+
+      </script> -->
+  </body>
+</html>

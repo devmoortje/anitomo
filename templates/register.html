@@ -2,7 +2,6 @@
 {% block title %}Register · YourApp{% endblock %}
 {% block content %}
 <h1 class="m-0">Create your account</h1>
-<p class="sub mt-1">Join the community in under a minute.</p>
 
 <section class="card mt-3">
   <form method="post" action="{{ url_for('auth.register') }}" novalidate>
@@ -31,7 +30,7 @@
 
     <div class="flex mt-2">
       <button class="btn primary" type="submit">Sign up</button>
-      <a class="btn ghost" href="{{ url_for('pages.index') }}">Cancel</a>
+      <a class="btn ghost" href="{{ url_for('pages.main') }}">Cancel</a>
     </div>
     {% if error %}<p class="mt-2" style="color:#fca5a5">{{ error }}</p>{% endif %}
   </form>

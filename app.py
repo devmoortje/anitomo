@@ -34,21 +34,12 @@ def create_app():
 
     @app.route("/")
     def root():
-        return redirect("/pages/index")
+        return redirect("/pages/main")
 
     # ----- Public / Landing
     @app.route("/home")
     def home():
-        return redirect(url_for("pages.index"))
-
-    @app.route("/index")
-    def index_redirect():
-        return redirect(url_for("pages.index"))
-
-    # Blueprint-like grouping via endpoints
-    @app.route("/pages/index")
-    def pages_index():
-        return render_template("index.html")
+        return redirect(url_for("pages.main"))
 
     @app.route("/pages/main", methods=["GET"])
     def pages_main():
@@ -62,18 +53,6 @@ def create_app():
 
         return render_template("main.html", flash_msg=request.args.get("m"), display_name=display_name)
 
-    @app.route("/pages/create-room", methods=["POST"])
-    def pages_create_room():
-        if not session.get("user"):
-            return redirect(url_for("auth.login"))
-        # pretend a room was created
-        return redirect(url_for("pages_main", m="🎬 Room created (demo)."))
-
-    @app.route("/pages/quick-match", methods=["POST"])
-    def pages_quick_match():
-        if not session.get("user"):
-            return redirect(url_for("auth.login"))
-        return redirect(url_for("pages_main", m="🎯 We'd match you with 3 people (demo)."))
 
     # ----- Log in
     @app.route("/auth/login", methods=["GET", "POST"])
@@ -94,6 +73,7 @@ def create_app():
             except AuthApiError:
                 return render_template("login.html", error="Invalid password"), 400
             session["access_token"] = res.session.access_token
+            session["refresh_token"] = res.session.refresh_token
             session["user_id"] = res.user.id
 
         
@@ -104,7 +84,7 @@ def create_app():
     @app.route("/auth/logout")
     def auth_logout():
         session.clear()
-        return redirect(url_for("pages.index"))
+        return redirect(url_for("pages.main"))
 
     @app.route("/auth/register", methods=["GET", "POST"])
     def auth_register():
@@ -132,7 +112,7 @@ def create_app():
     @app.route("/account/me", methods=["GET", "POST"])
     def account_me():
     # 1) Require login and get a user-scoped client (RLS-aware)
-        user_client = get_user_client()
+        user_client = get_user_client(supabase)
         if not user_client:
             return redirect(url_for("auth.login"))
 
@@ -140,21 +120,17 @@ def create_app():
         if not user_id:
             return redirect(url_for("auth.login"))
 
-        # 2) Fetch current profile (if any)
+        # 2) Fetch current profile
         prof_res = user_client.table("profiles") \
-            .select("id, handle, display_name, email, bio, top5, avatar_url") \
+            .select("id, display_name, email, bio, top5, avatar_url") \
             .eq("id", user_id) \
             .execute()
+        
+        if not prof_res:
+            return "We are sorry. We weren't able to retrieve personal information.", 500
 
-        profile = (prof_res.data[0] if prof_res.data else {
-            "id": user_id,
-            "handle": None,
-            "display_name": "",
-            "email": "",
-            "bio": "",
-            "top5": "",
-            "avatar_url": None,
-        })
+        profile = prof_res.data[0]
+        display_name = profile["display_name"]
 
         saved = False
 
@@ -191,20 +167,44 @@ def create_app():
 
             # Re-fetch to render fresh values
             prof_res = user_client.table("profiles") \
-                .select("id, handle, display_name, email, bio, top5, avatar_url") \
+                .select("id, display_name, email, bio, top5, avatar_url") \
                 .eq("id", user_id) \
                 .execute()
             profile = prof_res.data[0] if prof_res.data else profile
             saved = True
 
         # 5) Render
-        return render_template("account.html", user=profile, saved=saved)
+        return render_template("account.html", user=profile, saved=saved, display_name=display_name)
+
+    @app.route("/test")
+    def test():
+
+        # Upload image to Supabase bucket
+        # user_id = session.get("user_id")
+        
+        # storage_path = f"{user_id}/pic.jpg"
+        
+        file_path = "/Users/seongjinkim/Downloads/test.jpg"
+        storage_path = "img_upload_test2/pic.jpg"
+        
+        with open(file_path, "rb") as f:
+            res = supabase.storage.from_("avatars").upload(
+                path=storage_path,
+                file=f
+            )                    
+        
+        # file_path = "/Users/seongjinkim/Documents/Python/anitomo/static/images/cover.jpg"
+        # storage_path = "img_upload_test/pic.jpg"
+        
+        # response = supabase.storage.from_('avatars').upload(storage_path, file_path)
+
+        return render_template(
+            "test.html",
+            SUPABASE_URL=SUPABASE_URL,
+            SUPABASE_ANON_KEY=SUPABASE_ANON_KEY)
 
     # Jinja-friendly endpoint names
-    app.add_url_rule("/pages/index", endpoint="pages.index", view_func=pages_index)
     app.add_url_rule("/main", endpoint="pages.main", view_func=pages_main)
-    app.add_url_rule("/create-room", endpoint="pages.create_room", view_func=pages_create_room, methods=["POST"])
-    app.add_url_rule("/quick-match", endpoint="pages.quick_match", view_func=pages_quick_match, methods=["POST"])
     app.add_url_rule("/login", endpoint="auth.login", view_func=auth_login, methods=["GET","POST"])
     app.add_url_rule("/logout", endpoint="auth.logout", view_func=auth_logout)
     app.add_url_rule("/register", endpoint="auth.register", view_func=auth_register, methods=["GET","POST"])
